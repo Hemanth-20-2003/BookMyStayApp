@@ -5,9 +5,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 import com.bookmystay.model.Reservation;
+import com.bookmystay.model.Service;
 
 /**
  * RoomInventoryService
@@ -31,6 +33,9 @@ public class RoomInventoryService {
 
     // Map of roomType -> assigned room IDs
     private HashMap<String, HashSet<String>> assignedRooms = new HashMap<>();
+    
+ // Map of reservationId -> list of services
+    private HashMap<String, List<Service>> reservationServices = new HashMap<>();
 
 
     /**
@@ -188,7 +193,7 @@ public class RoomInventoryService {
 
             // Generate unique room ID
             String roomId = generateRoomId(roomType);
-
+            reservationServices.put(roomId, new LinkedList<>());
             // Add to global booked set
             bookedRoomIds.add(roomId);
 
@@ -266,5 +271,80 @@ public class RoomInventoryService {
 
             System.out.println(roomType + " Rooms: " + rooms);
         }
+    }
+    /**
+     * addServiceToReservation()
+     * Allows guest to attach optional services to a booking.
+     */
+    public void addServiceToReservation(Scanner scanner) {
+
+        System.out.print("Enter Reservation ID: ");
+        String reservationId = scanner.nextLine();
+
+        if (!reservationServices.containsKey(reservationId)) {
+            System.out.println("Reservation not found.");
+            return;
+        }
+
+        System.out.println("Available Services:");
+        System.out.println("1. Breakfast (₹500)");
+        System.out.println("2. Spa (₹1500)");
+        System.out.println("3. Airport Pickup (₹800)");
+
+        System.out.print("Select service: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        Service service = null;
+
+        switch (choice) {
+
+            case 1:
+                service = new Service("Breakfast", 500);
+                break;
+
+            case 2:
+                service = new Service("Spa", 1500);
+                break;
+
+            case 3:
+                service = new Service("Airport Pickup", 800);
+                break;
+
+            default:
+                System.out.println("Invalid service.");
+                return;
+        }
+
+        reservationServices.get(reservationId).add(service);
+
+        System.out.println("Service added to reservation.");
+    }
+    /**
+     * calculateServiceCost()
+     * Calculates total add-on service cost for a reservation.
+     */
+    public void calculateServiceCost(Scanner scanner) {
+
+        System.out.print("Enter Reservation ID: ");
+        String reservationId = scanner.nextLine();
+
+        if (!reservationServices.containsKey(reservationId)) {
+            System.out.println("Reservation not found.");
+            return;
+        }
+
+        List<Service> services = reservationServices.get(reservationId);
+
+        double total = 0;
+
+        System.out.println("\nServices Selected:");
+
+        for (Service s : services) {
+            System.out.println(s);
+            total += s.price;
+        }
+
+        System.out.println("Total Additional Cost: ₹" + total);
     }
 }

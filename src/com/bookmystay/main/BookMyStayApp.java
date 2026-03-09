@@ -28,7 +28,9 @@ public class BookMyStayApp {
             System.out.println("4. Process Booking Request (System)");
             System.out.println("5. View Booking Queue (Admin)");
             System.out.println("6. View Assigned Rooms (Admin)");
-            System.out.println("7. Exit");
+            System.out.println("7. Add Service to Reservation (Guest)");
+            System.out.println("8. Calculate Service Cost (Guest)");
+            System.out.println("9. Exit");
 
             System.out.print("Enter your choice: ");
 
@@ -59,8 +61,17 @@ public class BookMyStayApp {
 
                 case 6:
                     service.viewAssignedRooms();
+                    break;
 
                 case 7:
+                    service.addServiceToReservation(scanner);
+                    break;
+
+                case 8:
+                    service.calculateServiceCost(scanner);
+                    break;
+
+                case 9:
                     System.out.println("Exiting system...");
                     break;
 
@@ -68,7 +79,7 @@ public class BookMyStayApp {
                     System.out.println("Invalid choice.");
             }
 
-        } while (choice != 7);
+        } while (choice != 9);
 
         scanner.close();
     }
