@@ -27,7 +27,8 @@ public class BookMyStayApp {
             System.out.println("3. Add Booking Request (Customer)");
             System.out.println("4. Process Booking Request (System)");
             System.out.println("5. View Booking Queue (Admin)");
-            System.out.println("6. Exit");
+            System.out.println("6. View Assigned Rooms (Admin)");
+            System.out.println("7. Exit");
 
             System.out.print("Enter your choice: ");
 
@@ -57,6 +58,9 @@ public class BookMyStayApp {
                     break;
 
                 case 6:
+                    service.viewAssignedRooms();
+
+                case 7:
                     System.out.println("Exiting system...");
                     break;
 
@@ -64,7 +68,7 @@ public class BookMyStayApp {
                     System.out.println("Invalid choice.");
             }
 
-        } while (choice != 6);
+        } while (choice != 7);
 
         scanner.close();
     }

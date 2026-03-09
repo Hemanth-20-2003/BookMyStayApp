@@ -1,6 +1,7 @@
 package com.bookmystay.service;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.LinkedList;
@@ -24,6 +25,12 @@ public class RoomInventoryService {
 
     // Queue for booking requests (FIFO principle)
     private Queue<Reservation> bookingQueue = new LinkedList<>();
+    
+ // Set to store all booked room IDs (ensures uniqueness)
+    private HashSet<String> bookedRoomIds = new HashSet<>();
+
+    // Map of roomType -> assigned room IDs
+    private HashMap<String, HashSet<String>> assignedRooms = new HashMap<>();
 
 
     /**
@@ -39,6 +46,10 @@ public class RoomInventoryService {
         roomPrice.put("Single", 2000.0);
         roomPrice.put("Double", 3500.0);
         roomPrice.put("Suite", 6000.0);
+        
+        assignedRooms.put("Single", new HashSet<>());
+        assignedRooms.put("Double", new HashSet<>());
+        assignedRooms.put("Suite", new HashSet<>());
     }
 
 
@@ -156,6 +167,11 @@ public class RoomInventoryService {
      * processBookingRequest()
      * Processes booking requests in FIFO order.
      */
+    /**
+     * processBookingRequest()
+     * Processes booking requests in FIFO order
+     * and allocates unique room IDs.
+     */
     public void processBookingRequest() {
 
         if (bookingQueue.isEmpty()) {
@@ -164,25 +180,34 @@ public class RoomInventoryService {
         }
 
         Reservation reservation = bookingQueue.poll();
-
         String roomType = reservation.roomType;
 
         int available = roomInventory.get(roomType);
 
         if (available > 0) {
 
-            // Allocate room and reduce inventory
+            // Generate unique room ID
+            String roomId = generateRoomId(roomType);
+
+            // Add to global booked set
+            bookedRoomIds.add(roomId);
+
+            // Add to assigned rooms map
+            assignedRooms.get(roomType).add(roomId);
+
+            // Update inventory immediately
             roomInventory.put(roomType, available - 1);
 
-            System.out.println("Booking confirmed for "
-                    + reservation.guestName
-                    + " | Room Type: " + roomType);
+            System.out.println("Booking Confirmed!");
+            System.out.println("Guest: " + reservation.guestName);
+            System.out.println("Room Type: " + roomType);
+            System.out.println("Assigned Room ID: " + roomId);
 
         } else {
 
             System.out.println("Room unavailable for "
-                    + reservation.guestName
-                    + ". Request returned to queue.");
+                    + reservation.guestName +
+                    ". Request returned to queue.");
 
             bookingQueue.offer(reservation);
         }
@@ -206,6 +231,40 @@ public class RoomInventoryService {
 
             System.out.println("Guest: " + r.guestName
                     + " | Room Type: " + r.roomType);
+        }
+    }
+    /**
+     * generateRoomId()
+     * Generates unique room ID for a booking.
+     * Example: SIN-101, DOU-203
+     */
+    private String generateRoomId(String roomType) {
+
+        String prefix = roomType.substring(0, 3).toUpperCase();
+        String roomId;
+
+        do {
+            int number = (int)(Math.random() * 900 + 100);
+            roomId = prefix + "-" + number;
+
+        } while (bookedRoomIds.contains(roomId));
+
+        return roomId;
+    }
+    /**
+     * viewAssignedRooms()
+     * Displays allocated room IDs per room type.
+     */
+    public void viewAssignedRooms() {
+
+        System.out.println("\n--- Allocated Rooms ---");
+
+        for (Map.Entry<String, HashSet<String>> entry : assignedRooms.entrySet()) {
+
+            String roomType = entry.getKey();
+            HashSet<String> rooms = entry.getValue();
+
+            System.out.println(roomType + " Rooms: " + rooms);
         }
     }
 }
