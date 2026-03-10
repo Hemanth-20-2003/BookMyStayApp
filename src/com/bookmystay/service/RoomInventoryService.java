@@ -19,332 +19,405 @@ import com.bookmystay.model.Service;
  */
 public class RoomInventoryService {
 
-    // HashMap for room type -> available count
-    private HashMap<String, Integer> roomInventory = new HashMap<>();
+	// HashMap for room type -> available count
+	private HashMap<String, Integer> roomInventory = new HashMap<>();
 
-    // HashMap for room type -> price per night
-    private HashMap<String, Double> roomPrice = new HashMap<>();
+	// HashMap for room type -> price per night
+	private HashMap<String, Double> roomPrice = new HashMap<>();
 
-    // Queue for booking requests (FIFO principle)
-    private Queue<Reservation> bookingQueue = new LinkedList<>();
-    
- // Set to store all booked room IDs (ensures uniqueness)
-    private HashSet<String> bookedRoomIds = new HashSet<>();
+	// Queue for booking requests (FIFO principle)
+	private Queue<Reservation> bookingQueue = new LinkedList<>();
 
-    // Map of roomType -> assigned room IDs
-    private HashMap<String, HashSet<String>> assignedRooms = new HashMap<>();
-    
- // Map of reservationId -> list of services
-    private HashMap<String, List<Service>> reservationServices = new HashMap<>();
+	// Set to store all booked room IDs (ensures uniqueness)
+	private HashSet<String> bookedRoomIds = new HashSet<>();
 
+	// Map of roomType -> assigned room IDs
+	private HashMap<String, HashSet<String>> assignedRooms = new HashMap<>();
 
-    /**
-     * Constructor
-     * Initializes room inventory and pricing.
-     */
-    public RoomInventoryService() {
+	// Map of reservationId -> list of services
+	private HashMap<String, List<Service>> reservationServices = new HashMap<>();
 
-        roomInventory.put("Single", 10);
-        roomInventory.put("Double", 8);
-        roomInventory.put("Suite", 5);
+	// List to store booking history
+	private List<Reservation> bookingHistory = new LinkedList<>();
 
-        roomPrice.put("Single", 2000.0);
-        roomPrice.put("Double", 3500.0);
-        roomPrice.put("Suite", 6000.0);
-        
-        assignedRooms.put("Single", new HashSet<>());
-        assignedRooms.put("Double", new HashSet<>());
-        assignedRooms.put("Suite", new HashSet<>());
-    }
 
+	/**
+	 * Constructor
+	 * Initializes room inventory and pricing.
+	 */
+	public RoomInventoryService() {
 
-    /**
-     * showAvailability()
-     * Displays current room availability.
-     * Admin can optionally update inventory.
-     */
-    public void showAvailability(Scanner scanner) {
+		roomInventory.put("Single", 10);
+		roomInventory.put("Double", 8);
+		roomInventory.put("Suite", 5);
 
-        System.out.println("\n--- Current Room Availability ---");
+		roomPrice.put("Single", 2000.0);
+		roomPrice.put("Double", 3500.0);
+		roomPrice.put("Suite", 6000.0);
 
-        for (Map.Entry<String, Integer> entry : roomInventory.entrySet()) {
+		assignedRooms.put("Single", new HashSet<>());
+		assignedRooms.put("Double", new HashSet<>());
+		assignedRooms.put("Suite", new HashSet<>());
+	}
 
-            String roomType = entry.getKey();
-            int count = entry.getValue();
-            double price = roomPrice.get(roomType);
 
-            System.out.println(roomType +
-                    " | Rooms Available: " + count +
-                    " | Price: ₹" + price);
-        }
+	/**
+	 * showAvailability()
+	 * Displays current room availability.
+	 * Admin can optionally update inventory.
+	 */
+	public void showAvailability(Scanner scanner) {
 
-        System.out.print("\nDo you want to update inventory? (yes/no): ");
-        String choice = scanner.nextLine();
+		System.out.println("\n--- Current Room Availability ---");
 
-        if (choice.equalsIgnoreCase("yes")) {
+		for (Map.Entry<String, Integer> entry : roomInventory.entrySet()) {
 
-            System.out.print("Enter room type (Single/Double/Suite): ");
-            String roomType = scanner.nextLine();
+			String roomType = entry.getKey();
+			int count = entry.getValue();
+			double price = roomPrice.get(roomType);
 
-            // Defensive validation
-            if (!roomInventory.containsKey(roomType)) {
-                System.out.println("Room type does not exist.");
-                return;
-            }
+			System.out.println(roomType +
+					" | Rooms Available: " + count +
+					" | Price: ₹" + price);
+		}
 
-            System.out.print("Enter new available room count: ");
-            int newCount = scanner.nextInt();
+		System.out.print("\nDo you want to update inventory? (yes/no): ");
+		String choice = scanner.nextLine();
 
-            System.out.print("Enter new price per night: ");
-            double newPrice = scanner.nextDouble();
-            scanner.nextLine();
+		if (choice.equalsIgnoreCase("yes")) {
 
-            roomInventory.put(roomType, newCount);
-            roomPrice.put(roomType, newPrice);
+			System.out.print("Enter room type (Single/Double/Suite): ");
+			String roomType = scanner.nextLine();
 
-            System.out.println("Room inventory updated successfully.");
-        }
-    }
+			// Defensive validation
+			if (!roomInventory.containsKey(roomType)) {
+				System.out.println("Room type does not exist.");
+				return;
+			}
 
+			System.out.print("Enter new available room count: ");
+			int newCount = scanner.nextInt();
 
-    /**
-     * searchAvailableRooms()
-     * Allows customers to view available rooms without modifying inventory.
-     */
-    public void searchAvailableRooms() {
+			System.out.print("Enter new price per night: ");
+			double newPrice = scanner.nextDouble();
+			scanner.nextLine();
 
-        System.out.println("\n--- Available Rooms For Booking ---");
+			roomInventory.put(roomType, newCount);
+			roomPrice.put(roomType, newPrice);
 
-        boolean found = false;
+			System.out.println("Room inventory updated successfully.");
+		}
+	}
 
-        for (Map.Entry<String, Integer> entry : roomInventory.entrySet()) {
 
-            String roomType = entry.getKey();
-            int count = entry.getValue();
+	/**
+	 * searchAvailableRooms()
+	 * Allows customers to view available rooms without modifying inventory.
+	 */
+	public void searchAvailableRooms() {
 
-            // Availability validation
-            if (count > 0) {
+		System.out.println("\n--- Available Rooms For Booking ---");
 
-                double price = roomPrice.get(roomType);
+		boolean found = false;
 
-                System.out.println("Room Type: " + roomType +
-                        " | Available: " + count +
-                        " | Price: ₹" + price);
+		for (Map.Entry<String, Integer> entry : roomInventory.entrySet()) {
 
-                found = true;
-            }
-        }
+			String roomType = entry.getKey();
+			int count = entry.getValue();
 
-        if (!found) {
-            System.out.println("No rooms currently available.");
-        }
-    }
+			// Availability validation
+			if (count > 0) {
 
+				double price = roomPrice.get(roomType);
 
-    /**
-     * addBookingRequest()
-     * Accepts booking request from customer.
-     * Request is stored in queue based on arrival order.
-     */
-    public void addBookingRequest(Scanner scanner) {
+				System.out.println("Room Type: " + roomType +
+						" | Available: " + count +
+						" | Price: ₹" + price);
 
-        System.out.print("Enter Guest Name: ");
-        String guestName = scanner.nextLine();
+				found = true;
+			}
+		}
 
-        System.out.print("Enter Room Type (Single/Double/Suite): ");
-        String roomType = scanner.nextLine();
+		if (!found) {
+			System.out.println("No rooms currently available.");
+		}
+	}
 
-        if (!roomInventory.containsKey(roomType)) {
-            System.out.println("Invalid room type.");
-            return;
-        }
 
-        Reservation reservation = new Reservation(guestName, roomType);
+	/**
+	 * addBookingRequest()
+	 * Accepts booking request from customer.
+	 * Request is stored in queue based on arrival order.
+	 */
+	public void addBookingRequest(Scanner scanner) {
 
-        // Add booking request to queue
-        bookingQueue.offer(reservation);
+		System.out.print("Enter Guest Name: ");
+		String guestName = scanner.nextLine();
 
-        System.out.println("Booking request added to queue.");
-    }
+		System.out.print("Enter Room Type (Single/Double/Suite): ");
+		String roomType = scanner.nextLine();
 
+		if (!roomInventory.containsKey(roomType)) {
+			System.out.println("Invalid room type.");
+			return;
+		}
 
-    /**
-     * processBookingRequest()
-     * Processes booking requests in FIFO order.
-     */
-    /**
-     * processBookingRequest()
-     * Processes booking requests in FIFO order
-     * and allocates unique room IDs.
-     */
-    public void processBookingRequest() {
+		Reservation reservation = new Reservation(guestName, roomType);
 
-        if (bookingQueue.isEmpty()) {
-            System.out.println("No booking requests in queue.");
-            return;
-        }
+		// Add booking request to queue
+		bookingQueue.offer(reservation);
 
-        Reservation reservation = bookingQueue.poll();
-        String roomType = reservation.roomType;
+		System.out.println("Booking request added to queue.");
+	}
 
-        int available = roomInventory.get(roomType);
 
-        if (available > 0) {
+	/**
+	 * processBookingRequest()
+	 * Processes booking requests in FIFO order.
+	 */
+	/**
+	 * processBookingRequest()
+	 * Processes booking requests in FIFO order
+	 * and allocates unique room IDs.
+	 */
+	public void processBookingRequest() {
 
-            // Generate unique room ID
-            String roomId = generateRoomId(roomType);
-            reservationServices.put(roomId, new LinkedList<>());
-            // Add to global booked set
-            bookedRoomIds.add(roomId);
+		if (bookingQueue.isEmpty()) {
+			System.out.println("No booking requests in queue.");
+			return;
+		}
 
-            // Add to assigned rooms map
-            assignedRooms.get(roomType).add(roomId);
+		Reservation reservation = bookingQueue.poll();
+		String roomType = reservation.roomType;
 
-            // Update inventory immediately
-            roomInventory.put(roomType, available - 1);
+		int available = roomInventory.get(roomType);
 
-            System.out.println("Booking Confirmed!");
-            System.out.println("Guest: " + reservation.guestName);
-            System.out.println("Room Type: " + roomType);
-            System.out.println("Assigned Room ID: " + roomId);
+		if (available > 0) {
 
-        } else {
+			// Generate unique room ID
+			String roomId = generateRoomId(roomType);
+			reservationServices.put(roomId, new LinkedList<>());
+			// Add to global booked set
+			bookedRoomIds.add(roomId);
+			reservation.roomId = roomId;
 
-            System.out.println("Room unavailable for "
-                    + reservation.guestName +
-                    ". Request returned to queue.");
+			// store reservation in history
+			bookingHistory.add(reservation);
+			// Add to assigned rooms map
+			assignedRooms.get(roomType).add(roomId);
 
-            bookingQueue.offer(reservation);
-        }
-    }
+			// Update inventory immediately
+			roomInventory.put(roomType, available - 1);
 
+			System.out.println("Booking Confirmed!");
+			System.out.println("Guest: " + reservation.guestName);
+			System.out.println("Room Type: " + roomType);
+			System.out.println("Assigned Room ID: " + roomId);
 
-    /**
-     * viewBookingQueue()
-     * Displays all pending booking requests.
-     */
-    public void viewBookingQueue() {
+		} else {
 
-        System.out.println("\n--- Pending Booking Requests ---");
+			System.out.println("Room unavailable for "
+					+ reservation.guestName +
+					". Request returned to queue.");
 
-        if (bookingQueue.isEmpty()) {
-            System.out.println("No pending bookings.");
-            return;
-        }
+			bookingQueue.offer(reservation);
+		}
+	}
 
-        for (Reservation r : bookingQueue) {
 
-            System.out.println("Guest: " + r.guestName
-                    + " | Room Type: " + r.roomType);
-        }
-    }
-    /**
-     * generateRoomId()
-     * Generates unique room ID for a booking.
-     * Example: SIN-101, DOU-203
-     */
-    private String generateRoomId(String roomType) {
+	/**
+	 * viewBookingQueue()
+	 * Displays all pending booking requests.
+	 */
+	public void viewBookingQueue() {
 
-        String prefix = roomType.substring(0, 3).toUpperCase();
-        String roomId;
+		System.out.println("\n--- Pending Booking Requests ---");
 
-        do {
-            int number = (int)(Math.random() * 900 + 100);
-            roomId = prefix + "-" + number;
+		if (bookingQueue.isEmpty()) {
+			System.out.println("No pending bookings.");
+			return;
+		}
 
-        } while (bookedRoomIds.contains(roomId));
+		for (Reservation r : bookingQueue) {
 
-        return roomId;
-    }
-    /**
-     * viewAssignedRooms()
-     * Displays allocated room IDs per room type.
-     */
-    public void viewAssignedRooms() {
+			System.out.println("Guest: " + r.guestName
+					+ " | Room Type: " + r.roomType);
+		}
+	}
+	/**
+	 * generateRoomId()
+	 * Generates unique room ID for a booking.
+	 * Example: SIN-101, DOU-203
+	 */
+	private String generateRoomId(String roomType) {
 
-        System.out.println("\n--- Allocated Rooms ---");
+		String prefix = roomType.substring(0, 3).toUpperCase();
+		String roomId;
 
-        for (Map.Entry<String, HashSet<String>> entry : assignedRooms.entrySet()) {
+		do {
+			int number = (int)(Math.random() * 900 + 100);
+			roomId = prefix + "-" + number;
 
-            String roomType = entry.getKey();
-            HashSet<String> rooms = entry.getValue();
+		} while (bookedRoomIds.contains(roomId));
 
-            System.out.println(roomType + " Rooms: " + rooms);
-        }
-    }
-    /**
-     * addServiceToReservation()
-     * Allows guest to attach optional services to a booking.
-     */
-    public void addServiceToReservation(Scanner scanner) {
+		return roomId;
+	}
+	/**
+	 * viewAssignedRooms()
+	 * Displays allocated room IDs per room type.
+	 */
+	public void viewAssignedRooms() {
 
-        System.out.print("Enter Reservation ID: ");
-        String reservationId = scanner.nextLine();
+		System.out.println("\n--- Allocated Rooms ---");
 
-        if (!reservationServices.containsKey(reservationId)) {
-            System.out.println("Reservation not found.");
-            return;
-        }
+		for (Map.Entry<String, HashSet<String>> entry : assignedRooms.entrySet()) {
 
-        System.out.println("Available Services:");
-        System.out.println("1. Breakfast (₹500)");
-        System.out.println("2. Spa (₹1500)");
-        System.out.println("3. Airport Pickup (₹800)");
+			String roomType = entry.getKey();
+			HashSet<String> rooms = entry.getValue();
 
-        System.out.print("Select service: ");
-        int choice = scanner.nextInt();
-        scanner.nextLine();
+			System.out.println(roomType + " Rooms: " + rooms);
+		}
+	}
+	/**
+	 * addServiceToReservation()
+	 * Allows guest to attach optional services to a booking.
+	 */
+	public void addServiceToReservation(Scanner scanner) {
 
-        Service service = null;
+		System.out.print("Enter Reservation ID: ");
+		String reservationId = scanner.nextLine();
 
-        switch (choice) {
+		if (!reservationServices.containsKey(reservationId)) {
+			System.out.println("Reservation not found.");
+			return;
+		}
 
-            case 1:
-                service = new Service("Breakfast", 500);
-                break;
+		System.out.println("Available Services:");
+		System.out.println("1. Breakfast (₹500)");
+		System.out.println("2. Spa (₹1500)");
+		System.out.println("3. Airport Pickup (₹800)");
 
-            case 2:
-                service = new Service("Spa", 1500);
-                break;
+		System.out.print("Select service: ");
+		int choice = scanner.nextInt();
+		scanner.nextLine();
 
-            case 3:
-                service = new Service("Airport Pickup", 800);
-                break;
+		Service service = null;
 
-            default:
-                System.out.println("Invalid service.");
-                return;
-        }
+		switch (choice) {
 
-        reservationServices.get(reservationId).add(service);
+		case 1:
+			service = new Service("Breakfast", 500);
+			break;
 
-        System.out.println("Service added to reservation.");
-    }
-    /**
-     * calculateServiceCost()
-     * Calculates total add-on service cost for a reservation.
-     */
-    public void calculateServiceCost(Scanner scanner) {
+		case 2:
+			service = new Service("Spa", 1500);
+			break;
 
-        System.out.print("Enter Reservation ID: ");
-        String reservationId = scanner.nextLine();
+		case 3:
+			service = new Service("Airport Pickup", 800);
+			break;
 
-        if (!reservationServices.containsKey(reservationId)) {
-            System.out.println("Reservation not found.");
-            return;
-        }
-
-        List<Service> services = reservationServices.get(reservationId);
-
-        double total = 0;
-
-        System.out.println("\nServices Selected:");
-
-        for (Service s : services) {
-            System.out.println(s);
-            total += s.price;
-        }
-
-        System.out.println("Total Additional Cost: ₹" + total);
-    }
+		default:
+			System.out.println("Invalid service.");
+			return;
+		}
+
+		reservationServices.get(reservationId).add(service);
+
+		System.out.println("Service added to reservation.");
+	}
+	/**
+	 * calculateServiceCost()
+	 * Calculates total add-on service cost for a reservation.
+	 */
+	public void calculateServiceCost(Scanner scanner) {
+
+		System.out.print("Enter Reservation ID: ");
+		String reservationId = scanner.nextLine();
+
+		if (!reservationServices.containsKey(reservationId)) {
+			System.out.println("Reservation not found.");
+			return;
+		}
+
+		List<Service> services = reservationServices.get(reservationId);
+
+		double total = 0;
+
+		System.out.println("\nServices Selected:");
+
+		for (Service s : services) {
+			System.out.println(s);
+			total += s.price;
+		}
+
+		System.out.println("Total Additional Cost: ₹" + total);
+	}
+	
+	/**
+	 * viewBookingHistory()
+	 * Displays all past and current reservations.
+	 */
+	public void viewBookingHistory() {
+
+	    System.out.println("\n--- Booking History ---");
+
+	    if (bookingHistory.isEmpty()) {
+	        System.out.println("No reservations found.");
+	        return;
+	    }
+
+	    for (Reservation r : bookingHistory) {
+	        System.out.println(r);
+	    }
+	}
+	/**
+	 * cancelReservation()
+	 * Allows admin to cancel an existing reservation.
+	 */
+	public void cancelReservation(Scanner scanner) {
+
+	    System.out.print("Enter Room ID to cancel: ");
+	    String roomId = scanner.nextLine();
+
+	    for (Reservation r : bookingHistory) {
+
+	        if (r.roomId.equals(roomId) && r.active) {
+
+	            r.active = false;
+
+	            // increase inventory back
+	            int available = roomInventory.get(r.roomType);
+	            roomInventory.put(r.roomType, available + 1);
+
+	            System.out.println("Reservation cancelled successfully.");
+	            return;
+	        }
+	    }
+
+	    System.out.println("Reservation not found.");
+	}
+	/**
+	 * generateReport()
+	 * Shows statistics for admin reporting.
+	 */
+	public void generateReport() {
+
+	    int totalBookings = bookingHistory.size();
+	    int activeBookings = 0;
+	    int cancelledBookings = 0;
+
+	    for (Reservation r : bookingHistory) {
+
+	        if (r.active)
+	            activeBookings++;
+	        else
+	            cancelledBookings++;
+	    }
+
+	    System.out.println("\n--- Booking Report ---");
+	    System.out.println("Total Bookings: " + totalBookings);
+	    System.out.println("Active Bookings: " + activeBookings);
+	    System.out.println("Cancelled Bookings: " + cancelledBookings);
+	}
 }
