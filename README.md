@@ -1,1 +1,9 @@
 # BookMyStayApp
+## UC1: Room Inventory Setup & Management
+This use case manages hotel room inventory using HashMaps to store room types, available counts, and pricing information. The system initializes different room categories and allows the admin to update counts or prices dynamically while maintaining data consistency. This ensures a centralized and efficient way to manage room availability.
+
+## UC2: Room Search & Availability Check
+This use case allows guests to search available room types and view pricing information without modifying the inventory. The system performs a fast lookup from HashMaps to display only rooms that are currently available. This ensures accurate availability information and prevents booking attempts for unavailable rooms.
+
+## UC3: Booking Request (First-Come-First-Served)
+This use case processes booking requests using a Queue data structure that follows the FIFO principle. Each reservation request is placed in the queue and processed in the order it was received, ensuring fair allocation during high-demand scenarios. This approach maintains predictable booking order and prevents request conflicts.
